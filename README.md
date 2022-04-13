@@ -11,5 +11,11 @@
 
 1. Create a lambda function "deleteEC2WithoutTags"
 2. Create a trigger EventBridge (CloudWatch Events) to run every hour with schedule expression - rate(1 hour)
-3. Create a SNS topic "lambda invocation" and create subscriptions to send emails.
-4. Attach "Ec2FullAccess" policy to the role for the lambda function
+3. Create a SNS topic "lambda invocation" and create subscriptions to send emails when lambda is run.
+4. Attach "EC2FullAccess" policy to the custom role for the lambda function
+5. Attach "DynamoDBFullAccess" policy to the custom role for the lambda function
+6. Attach "SESFullAccess" policy to the custom role for the lambda function.
+7. Note that the above permissions can be reduced to follow AWS best practises.
+8. Replace the lambda_function.py file
+9. Create a dynamodb table "deleteEC2tags_emails"
+10. Verify an identity in the SES service "varunvaddiparthi09@gmail.com"
