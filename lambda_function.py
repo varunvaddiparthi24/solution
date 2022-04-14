@@ -16,6 +16,7 @@ def lambda_handler(event, context):
         dynamo = boto3.client('dynamodb')
         sesclient = boto3.client('ses')
     
+    # get all ec2 instances
     response = ec2.describe_instances()
     
     for reservation in (response['Reservations']):
@@ -34,12 +35,12 @@ def lambda_handler(event, context):
                 createdby  = tag['Value']
         
         #print(keys)
-        
+     
         #print(createdby)
             
         if "Name" not in keys or "Environment" not in keys:
             
-            #query dynamodb
+            # if name or environment tag is not present, check if email is already sent by querying dynamodb table
             
             data = dynamo.get_item(
                  TableName='deleteEC2tags_emails',
@@ -53,11 +54,14 @@ def lambda_handler(event, context):
             
             #print(data)
             
+            
+            # if email is already sent, then if it's more than 6 hours ago, delete the instance - if it's less than 6 hours ago do nothing
             if 'Item' in data.keys():
                 if (int(data['Item']['emailSent']['S']) - int(time.time()))/3600 > 6:
-                    ec2.stop_instances(InstanceIds=[instance_id], DryRun=True)
+                    ec2.stop_instances(InstanceIds=[instance_id])
             else:
                 
+            # if email is not sent, put an item to dynamodb table with the instanceid and sent time
                 data = dynamo.put_item(
                         TableName='deleteEC2tags_emails',
                         Item={
@@ -73,7 +77,7 @@ def lambda_handler(event, context):
                 #print(data)
                 
 
-                
+             # send an email to the person who created the instance
                 response = sesclient.send_email(
                             Source='varunvaddiparthi09@gmail.com',
                             Destination={
